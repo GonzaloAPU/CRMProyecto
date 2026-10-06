@@ -23,7 +23,7 @@ Firestore    Acceso futuro mediante config/firebase.js → db
 ```
 
 El flujo actual de /api/test termina en test.service.js y devuelve un estado estático.
-Firestore está preparado, pero todavía no participa en las rutas.
+GET /api/test/firestore consulta Firestore mediante el servicio, sin escribir datos.
 La ruta raíz es una comprobación sencilla definida en index.js.
 La ruta /api/health conserva el controlador de disponibilidad anterior.
 
@@ -35,7 +35,7 @@ La ruta /api/health conserva el controlador de disponibilidad anterior.
 | config/firebase.js | Carga el entorno, valida credenciales al importar, inicializa Firebase y exporta db |
 | routes/test.routes.js | Router GET /, montado en /api/test |
 | controllers/test.controller.js | Llama al servicio y devuelve JSON |
-| services/test.service.js | Devuelve el estado del backend sin acceder a Firestore |
+| services/test.service.js | Estado básico y comprobación de Firestore con una lectura de clientes limitada a 1 |
 | routes/index.js | Router de GET /api/health |
 | controllers/healthController.js | Devuelve el estado del servicio |
 | middleware/errorHandler.js | Devuelve JSON para errores y delega si ya se enviaron cabeceras |
@@ -73,6 +73,8 @@ Las variables que ya existan en el proceso tienen precedencia sobre el archivo.
 | --- | --- | --- |
 | GET / | 200 | {"message":"API CRM funcionando correctamente"} |
 | GET /api/test | 200 | {"ok":true,"message":"Backend CRM operativo"} |
+| GET /api/test/firestore | 200 | {"ok":true,"message":"Conexión a Firestore verificada","documentsRead":0} |
+| Fallo en GET /api/test/firestore | 503 | {"ok":false,"message":"No se pudo conectar a Firestore. Revise las credenciales, los permisos y la conexión."} |
 | GET /api/health | 200 | {"status":"ok","service":"crm-server"} |
 | Ruta o método sin registrar | 404 | {"error":"Ruta no encontrada"} |
 | Error con status 400, como JSON inválido | 400 | {"error":"Solicitud inválida"} |
@@ -98,7 +100,7 @@ Si no existe una aplicación Firebase y faltan variables, importar la configurac
 Si la clave es inválida, Firebase Admin puede rechazar su inicialización.
 Obtener db no demuestra que las credenciales tengan acceso remoto: hace falta una operación real.
 
-El servidor no importa config/firebase.js todavía. Por eso sus rutas de prueba arrancan sin credenciales.
+La configuración se importa bajo demanda al solicitar /api/test/firestore. Las rutas básicas siguen funcionando sin credenciales.
 Un futuro servicio podrá usar:
 
 ```js
@@ -164,3 +166,10 @@ La instalación informó tres vulnerabilidades de dependencias en ese momento; c
 - [Inicio de Firestore con bibliotecas de servidor](https://firebase.google.com/docs/firestore/quickstart-server).
 - [Bases de datos y base predeterminada](https://firebase.google.com/docs/firestore/manage-databases).
 - [API de Express](https://expressjs.com/en/5x/api.html).
+
+## Prueba HTTP de Firestore
+
+GET /api/test/firestore realiza una lectura real y devuelve documentsRead (0 o 1). Una colección vacía también confirma acceso. No devuelve datos de clientes ni escribe documentos. Un fallo devuelve 503 sin incluir detalles internos. La ruta es de diagnóstico de desarrollo: no usarla como monitor continuo; cada llamada puede contabilizar lecturas. Antes de un despliegue público, restringir su acceso mediante la futura autenticación.
+
+Pruebas locales sin acceso remoto: desde server, ejecutar `node --test tests/*.test.js`.
+

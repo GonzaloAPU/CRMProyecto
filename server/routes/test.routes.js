@@ -1,7 +1,8 @@
 import { Router } from 'express'
-import { getTest } from '../controllers/test.controller.js'
+import { getTest, getFirestoreTest } from '../controllers/test.controller.js'
 
 const router = Router()
 router.get('/', getTest)
+router.get('/firestore', getFirestoreTest)
 
 export default router

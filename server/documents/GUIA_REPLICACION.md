@@ -233,7 +233,7 @@ Una variable PORT ya definida en la terminal tiene precedencia sobre .env.
 
 Solo después de completar el entorno y crear la base.
 Este comando consulta como máximo un documento de clientes y no crea, actualiza ni elimina datos.
-No necesita modificar las rutas ni crear un archivo de prueba.
+La ruta de diagnóstico GET /api/test/firestore realiza esa lectura. Abrir http://localhost:3000/api/test/firestore o usar Invoke-RestMethod con esa URL. Devuelve 200 con ok=true, message y documentsRead (0 o 1); si falla, devuelve 503 con un mensaje general. No devuelve documentos. También se puede usar el comando siguiente como alternativa.
 
 Desde server:
 
@@ -286,7 +286,7 @@ indicó tres vulnerabilidades; el resultado puede cambiar con nuevas versiones o
 | ENOTFOUND o error de descarga | Acceso a registry.npmjs.org, conexión y proxy de la red |
 | EADDRINUSE | Hay otra instancia usando el puerto; detenerla o elegir otro PORT |
 | Vite muestra ECONNREFUSED | Revisar el servidor y la diferencia entre 3000 y 3001 |
-| API devuelve 404 | Revisar la URL; solo existen /, /api/test y /api/health |
+| API devuelve 404 | Revisar la URL; existen /, /api/test, /api/test/firestore y /api/health |
 | Faltan variables Firebase | Archivo server/.env, nombres exactos y reinicio |
 | Invalid PEM o private key | Clave completa, comillas y saltos de línea |
 | PERMISSION_DENIED | Cuenta, proyecto y permisos IAM de Firestore |
@@ -325,3 +325,4 @@ todavía no están implementados.
 - [ ] Comprendo que el CRUD y la autenticación aún están pendientes.
 
 [Volver a la documentación técnica](README.md) · [Volver al README principal](../../README.md)
+
