@@ -5,7 +5,7 @@ Panel de control de clientes con frontend React/Vite y backend Node.js/Express, 
 ## Estado actual
 
 - Frontend con vistas de dashboard, clientes, detalle y login.
-- Backend Express con CORS, JSON, rutas de prueba y manejo de errores.
+- Backend Express con CORS, JSON, rutas de prueba, validación del entorno y manejo de errores.
 - Configuración de Firebase mediante variables de entorno y ruta de lectura GET /api/test/firestore.
 - Sin CRUD de clientes, autenticación ni permisos implementados.
 - Sin FakeStoreAPI ni persistencia en localStorage/sessionStorage.
@@ -102,4 +102,3 @@ El código fuente está bajo licencia MIT.
 La documentación y material pedagógico están bajo Creative Commons Attribution 4.0.
 
 © 2026 — Cátedra Legislación y Ejercicio Profesional - Carrera Analista Programador Universitario - FI UNJu
-

@@ -41,15 +41,15 @@ Antes de repartir la guía, el responsable debe subir los cambios a la rama eleg
 y compartir su nombre o commit. Clonar solo descarga los cambios que ya están publicados.
 Esta guía no publica ni hace push por sí misma.
 
-Cuando el equipo indique la rama:
+La rama de trabajo del equipo es develop. Para obtenerla:
 
 ```bash
 git fetch origin
-git switch NOMBRE_DE_LA_RAMA
+git switch develop
 git pull --ff-only
 ```
 
-Reemplazar NOMBRE_DE_LA_RAMA; no copiarlo literalmente.
+Crear las ramas de cada tarea desde develop y abrir sus Pull Requests hacia develop. main conserva la entrega estable.
 Si existen cambios locales, revisarlos antes de actualizar; no borrarlos para resolver conflictos.
 Para reproducir exactamente una entrega, el equipo también puede compartir su SHA y usar git checkout SHA_DEL_COMMIT.
 Esa opción deja HEAD separado; crear una rama antes de trabajar.
@@ -98,7 +98,7 @@ Ejecutar solo una de las dos opciones. Debería aparecer:
 Servidor funcionando en http://localhost:3000
 ```
 
-Las rutas iniciales funcionan sin .env ni credenciales porque todavía no importan db.
+Las rutas básicas funcionan sin .env ni credenciales. Al arrancar se informa que Firebase no está configurado. Una configuración Firebase parcialmente completada o inválida impide el inicio con un mensaje claro; completar las tres variables o dejarlas todas vacías para probar sin Firebase.
 Mantener esta terminal abierta. Detener con Ctrl+C.
 
 ## 5. Probar la API
@@ -227,7 +227,7 @@ Nunca copiar estos valores a client o a variables VITE_*.
 El .gitignore actual no protege automáticamente cualquier JSON descargado: guardarlo fuera del repositorio.
 
 Reiniciar el servidor después de cambiar .env; node --watch observa el código y no garantiza recargar este archivo.
-Una variable PORT ya definida en la terminal tiene precedencia sobre .env.
+Una variable PORT ya definida en la terminal tiene precedencia sobre .env. PORT debe ser un entero entre 1 y 65535; si está definida pero vacía, también se rechaza. El correo debe tener formato válido y la clave debe ser RSA/PEM. Si falta alguna variable Firebase, el mensaje enumera sus nombres sin mostrar secretos.
 
 ## 8. Comprobar Firestore con una lectura
 
@@ -266,6 +266,12 @@ Para revisar únicamente el servidor:
 npm run lint --workspace server
 ```
 
+Para ejecutar las pruebas locales sin conexión a Firebase, desde la raíz:
+
+```bash
+node --test server/tests/*.test.js
+```
+
 Para revisar dependencias:
 
 ```bash
@@ -287,7 +293,9 @@ indicó tres vulnerabilidades; el resultado puede cambiar con nuevas versiones o
 | EADDRINUSE | Hay otra instancia usando el puerto; detenerla o elegir otro PORT |
 | Vite muestra ECONNREFUSED | Revisar el servidor y la diferencia entre 3000 y 3001 |
 | API devuelve 404 | Revisar la URL; existen /, /api/test, /api/test/firestore y /api/health |
-| Faltan variables Firebase | Archivo server/.env, nombres exactos y reinicio |
+| Faltan variables Firebase | Completar las tres variables o dejarlas todas vacías para usar solo las rutas básicas |
+| PORT inválido | Usar un entero entre 1 y 65535; corregir .env y variables de la terminal |
+| /api/test/firestore devuelve 503 | Credenciales completas, clave válida, permisos, base (default) y conexión |
 | Invalid PEM o private key | Clave completa, comillas y saltos de línea |
 | PERMISSION_DENIED | Cuenta, proyecto y permisos IAM de Firestore |
 | NOT_FOUND al consultar Firestore | Existencia de la base (default) y proyecto correcto |
@@ -325,4 +333,3 @@ todavía no están implementados.
 - [ ] Comprendo que el CRUD y la autenticación aún están pendientes.
 
 [Volver a la documentación técnica](README.md) · [Volver al README principal](../../README.md)
-

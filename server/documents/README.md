@@ -19,7 +19,7 @@ controllers  Construye la respuesta HTTP
     ↓
 services     Ejecuta la lógica de negocio
     ↓
-Firestore    Acceso futuro mediante config/firebase.js → db
+Firestore    Lectura de diagnóstico y acceso futuro mediante config/firebase.js → db
 ```
 
 El flujo actual de /api/test termina en test.service.js y devuelve un estado estático.
@@ -32,6 +32,7 @@ La ruta /api/health conserva el controlador de disponibilidad anterior.
 | Archivo | Responsabilidad |
 | --- | --- |
 | index.js | Carga server/.env, crea Express, registra CORS/JSON/rutas/errores y escucha el puerto |
+| config/env.js | Valida PORT y la configuración Firebase sin conectarse a la base |
 | config/firebase.js | Carga el entorno, valida credenciales al importar, inicializa Firebase y exporta db |
 | routes/test.routes.js | Router GET /, montado en /api/test |
 | controllers/test.controller.js | Llama al servicio y devuelve JSON |
@@ -63,7 +64,7 @@ Orden actual:
 6. Respuesta 404 para rutas no registradas.
 7. Middleware de errores.
 
-El puerto sale de process.env.PORT || 3000.
+PORT usa 3000 cuando no está definida. Si se define, debe ser un entero entre 1 y 65535; valores vacíos o inválidos impiden iniciar el servidor con un mensaje claro y código de salida 1.
 dotenv carga server/.env usando una ruta relativa al archivo, incluso si se inicia desde la raíz.
 Las variables que ya existan en el proceso tienen precedencia sobre el archivo.
 
@@ -87,7 +88,7 @@ Actualmente solo distingue status 400 y los demás errores como 500; ampliar ese
 
 | Variable | Uso |
 | --- | --- |
-| PORT | Puerto HTTP; 3000 por defecto |
+| PORT | Entero entre 1 y 65535; 3000 si no está definida |
 | FIREBASE_PROJECT_ID | project_id de la cuenta de servicio |
 | FIREBASE_CLIENT_EMAIL | client_email de la cuenta de servicio |
 | FIREBASE_PRIVATE_KEY | private_key completa, con cabeceras PEM y saltos de línea |
@@ -96,12 +97,12 @@ config/firebase.js convierte los caracteres literales `\n` de la clave en saltos
 Reutiliza la aplicación Firebase [DEFAULT] existente, evitando inicializaciones duplicadas.
 getFirestore() usa la base (default).
 
-Si no existe una aplicación Firebase y faltan variables, importar la configuración arroja un error descriptivo.
-Si la clave es inválida, Firebase Admin puede rechazar su inicialización.
+Al arrancar, se permiten las tres variables Firebase ausentes o vacías para probar las rutas básicas. Si se completa alguna, deben completarse las tres: de lo contrario el servidor no inicia y enumera los nombres faltantes. También valida el formato del correo y que la clave sea RSA/PEM, sin imprimir sus valores. Al usar Firestore, las tres variables son obligatorias.
+La validación comprueba el formato local. Los permisos IAM, el proyecto y la conectividad se comprueban únicamente con una lectura real.
 Obtener db no demuestra que las credenciales tengan acceso remoto: hace falta una operación real.
 
 La configuración se importa bajo demanda al solicitar /api/test/firestore. Las rutas básicas siguen funcionando sin credenciales.
-Un futuro servicio podrá usar:
+Los servicios pueden usar:
 
 ```js
 import { db } from '../config/firebase.js'
@@ -124,7 +125,7 @@ npm run lint
 
 - dev: node --watch index.js.
 - start: node index.js.
-- lint: eslint ..
+- lint: `eslint .`.
 
 Instalar versiones reproducibles con npm ci desde la raíz. El lockfile es compartido por los workspaces.
 
@@ -173,3 +174,7 @@ GET /api/test/firestore realiza una lectura real y devuelve documentsRead (0 o 1
 
 Pruebas locales sin acceso remoto: desde server, ejecutar `node --test tests/*.test.js`.
 
+
+## Pruebas de validación
+
+Desde server: `node --test tests/*.test.js`. Incluyen puertos válidos e inválidos, credenciales ausentes o parciales, correo, clave RSA y saltos de línea, lectura vacía y errores de Firestore. Las pruebas usan objetos de prueba y claves generadas en memoria; no acceden al Firebase real. Los mensajes de validación nunca incluyen la clave privada.

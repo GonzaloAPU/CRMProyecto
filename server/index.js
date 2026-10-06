@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { handleRoutes } from './routes/index.js'
 import { handleError } from './middleware/errorHandler.js'
 import testRoutes from './routes/test.routes.js'
+import { validateEnvironment } from './config/env.js'
 
 dotenv.config({ path: fileURLToPath(new URL('./.env', import.meta.url)) })
 
@@ -25,13 +26,21 @@ export const createApp = () => {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const port = process.env.PORT || 3000
-  const app = createApp()
-  const server = app.listen(port, () => {
-    console.log(`Servidor funcionando en http://localhost:${port}`)
-  })
-  server.on('error', (error) => {
+  try {
+    const { port, firebase } = validateEnvironment()
+    if (!firebase) {
+      console.log('Firebase sin configurar: las rutas básicas están disponibles; la prueba de Firestore requiere credenciales.')
+    }
+    const app = createApp()
+    const server = app.listen(port, () => {
+      console.log(`Servidor funcionando en http://localhost:${port}`)
+    })
+    server.on('error', (error) => {
+      console.error('No se pudo iniciar el servidor:', error.message)
+      process.exitCode = 1
+    })
+  } catch (error) {
     console.error('No se pudo iniciar el servidor:', error.message)
     process.exitCode = 1
-  })
+  }
 }

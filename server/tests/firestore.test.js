@@ -28,7 +28,7 @@ test('Firestore propaga el fallo de lectura', async () => {
 test('La ruta devuelve 503 sin exponer credenciales cuando falta configuración', async () => {
   const names = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY']
   const previous = names.map((name) => process.env[name])
-  names.forEach((name) => { delete process.env[name] })
+  names.forEach((name) => { process.env[name] = '' })
   try {
     let status
     let body
