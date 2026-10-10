@@ -1,12 +1,143 @@
 import '../css/detallecliente.css'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { getClientePorId, eliminarCliente } from '../services/clienteService'
 
-const DetalleCliente = () => (
-  <div className="detalle-cliente">
-    <h1>Ficha del Cliente</h1>
-    <p>Los datos del cliente no están disponibles hasta conectar un nuevo backend.</p>
-    <Link to="/clientes">Volver a clientes</Link>
-  </div>
-)
+const DetalleCliente = () => {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [cliente, setCliente] = useState(null)
+  const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
+  const [mensajeEliminado, setMensajeEliminado] = useState(false)
+
+  useEffect(() => {
+    let ignore = false
+
+    const cargarDetalle = async () => {
+      try {
+        const response = await getClientePorId(id)
+        if (!ignore) {
+          setCliente(response.data || response)
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(err.message || 'Error al obtener los datos del cliente')
+        }
+      } finally {
+        if (!ignore) {
+          setCargando(false)
+        }
+      }
+    }
+
+    cargarDetalle()
+
+    return () => {
+      ignore = true
+    }
+  }, [id])
+
+  const [usuario] = useState(() => {
+    try {
+      const sesion = localStorage.getItem('usuarioCRM')
+      return sesion ? JSON.parse(sesion) : null
+    } catch {
+      return null
+    }
+  })
+
+  const esStaff = usuario && ['Gerencia', 'Soporte'].includes(usuario.sector)
+
+  const handleEliminar = async () => {
+    if (!esStaff) {
+      setError('Solo usuarios con rol Soporte o Gerencia pueden eliminar clientes.')
+      return
+    }
+
+    const confirmar = window.confirm(`¿Está seguro de que desea eliminar al cliente "${cliente?.nombre || id}"?`)
+    if (!confirmar) return
+
+    setEliminando(true)
+    setError(null)
+    try {
+      await eliminarCliente(id, usuario.sector)
+      setMensajeEliminado(true)
+      setTimeout(() => {
+        navigate('/clientes')
+      }, 1500)
+    } catch (err) {
+      setError(err.message || 'Error al eliminar el cliente')
+      setEliminando(false)
+    }
+  }
+
+  return (
+    <div className="detalle-cliente">
+      <h1>Ficha del Cliente</h1>
+
+      {mensajeEliminado && (
+        <div className="mensaje-eliminado">
+          Cliente eliminado con éxito. Redirigiendo a la lista...
+        </div>
+      )}
+
+      {error && (
+        <div style={{ color: 'red', textAlign: 'center', marginBottom: '20px' }}>
+          {error}
+        </div>
+      )}
+
+      {cargando ? (
+        <p style={{ textAlign: 'center' }}>Cargando datos del cliente...</p>
+      ) : cliente ? (
+        <>
+          <h2>Información de Contacto</h2>
+          <p><strong>ID:</strong> {cliente.id}</p>
+          <p><strong>Nombre / Razón Social:</strong> {cliente.nombre || '-'}</p>
+          <p><strong>Email:</strong> {cliente.email || '-'}</p>
+          <p><strong>Teléfono:</strong> {cliente.telefono || '-'}</p>
+
+          <h2>Estado y Presupuesto</h2>
+          <p>
+            <strong>Estado:</strong>{' '}
+            <span style={{ textTransform: 'capitalize' }}>{cliente.estado || 'pendiente'}</span>
+          </p>
+          <p>
+            <strong>Monto de Presupuesto:</strong> ${Number(cliente.montoPresupuesto || 0).toLocaleString('es-AR')}
+          </p>
+          {cliente.fechaCreacion && (
+            <p>
+              <strong>Fecha de Registro:</strong> {new Date(cliente.fechaCreacion).toLocaleString('es-AR')}
+            </p>
+          )}
+
+          {!mensajeEliminado && (
+            esStaff ? (
+              <button
+                className="btn-eliminar"
+                onClick={handleEliminar}
+                disabled={eliminando}
+              >
+                {eliminando ? 'Eliminando cliente...' : 'Eliminar Cliente'}
+              </button>
+            ) : (
+              <p style={{ textAlign: 'center', color: '#888', fontStyle: 'italic', marginTop: '20px' }}>
+                * Solo los usuarios con rol de Soporte o Gerencia pueden eliminar clientes.
+              </p>
+            )
+          )}
+        </>
+      ) : (
+        !error && <p style={{ textAlign: 'center' }}>Cliente no encontrado.</p>
+      )}
+
+      <div style={{ textAlign: 'center', marginTop: '30px' }}>
+        <Link to="/clientes">← Volver a clientes</Link>
+      </div>
+    </div>
+  )
+}
 
 export default DetalleCliente

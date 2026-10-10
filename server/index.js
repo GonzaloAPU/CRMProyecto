@@ -6,6 +6,7 @@ import { handleRoutes } from './routes/index.js'
 import { handleError } from './middleware/errorHandler.js'
 import testRoutes from './routes/test.routes.js'
 import clientesRoutes from './routes/clientes.routes.js'
+import usuariosRoutes from './routes/usuarios.routes.js'
 
 dotenv.config({ path: fileURLToPath(new URL('./.env', import.meta.url)) })
 
@@ -18,6 +19,7 @@ export const createApp = () => {
   })
   app.use('/api/test', testRoutes)
   app.use('/api/clientes', clientesRoutes)
+  app.use('/api/usuarios', usuariosRoutes)
   app.use(handleRoutes)
   app.use((_request, response) => {
     response.status(404).json({ error: 'Ruta no encontrada' })
