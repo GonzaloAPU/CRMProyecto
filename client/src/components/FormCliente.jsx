@@ -9,7 +9,7 @@ const FormCliente = ({ onClienteCreado }) => {
     email: '',
     telefono: '',
     estado: 'pendiente',
-    montoPresupuesto: 0
+    montoPresupuesto: ''
   })
   const [cargando, setCargando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
@@ -19,7 +19,7 @@ const FormCliente = ({ onClienteCreado }) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'montoPresupuesto' ? Number(value) : value
+      [name]: value
     }))
   }
 
@@ -30,20 +30,24 @@ const FormCliente = ({ onClienteCreado }) => {
     setMensaje(null)
 
     try {
-      await crearCliente(formData)
+      const payload = {
+        ...formData,
+        montoPresupuesto: formData.montoPresupuesto === '' ? 0 : Number(formData.montoPresupuesto)
+      }
+      await crearCliente(payload)
       setMensaje('Cliente guardado exitosamente en la base de datos.')
       setFormData({
         nombre: '',
         email: '',
         telefono: '',
         estado: 'pendiente',
-        montoPresupuesto: 0
+        montoPresupuesto: ''
       })
       if (onClienteCreado) {
         onClienteCreado()
       }
     } catch (err) {
-      setError(err.message || 'Error al conectar con el backend.')
+      setError(err.message || 'No se pudo guardar el cliente.')
     } finally {
       setCargando(false)
     }
@@ -114,6 +118,7 @@ const FormCliente = ({ onClienteCreado }) => {
             value={formData.montoPresupuesto}
             onChange={handleChange}
             placeholder="0"
+            min="0"
           />
         </Form.Group>
 

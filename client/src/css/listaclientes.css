@@ -119,4 +119,22 @@ input[type="text"]{
 
 input[type="text"]::placeholder{
     color:#c78aa6;
+}
+
+.btn-eliminar-item{
+    display:inline-block;
+    background:#dc3545;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.btn-eliminar-item:hover{
+    background:#bb2d3b;
+    transform:scale(1.05);
 } 
