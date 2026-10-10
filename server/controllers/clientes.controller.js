@@ -52,6 +52,13 @@ export const clientesController = {
 
   async eliminar(req, res, next) {
     try {
+      const sector = req.headers['x-user-sector'];
+      if (!sector || !['Gerencia', 'Soporte'].includes(sector)) {
+        return res.status(403).json({
+          ok: false,
+          error: 'Acceso denegado: solo usuarios con rol Soporte o Gerencia pueden eliminar clientes'
+        });
+      }
       const { id } = req.params;
       const eliminado = await clientesService.eliminar(id);
       if (!eliminado) {

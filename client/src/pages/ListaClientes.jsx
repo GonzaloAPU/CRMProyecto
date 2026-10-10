@@ -58,12 +58,28 @@ const ListaClientes = () => {
     }
   }, [])
 
+  const [usuario] = useState(() => {
+    try {
+      const sesion = localStorage.getItem('usuarioCRM')
+      return sesion ? JSON.parse(sesion) : null
+    } catch {
+      return null
+    }
+  })
+
+  const esStaff = usuario && ['Gerencia', 'Soporte'].includes(usuario.sector)
+
   const handleEliminar = async (id, nombre) => {
+    if (!esStaff) {
+      alert('Acceso restringido: Solo usuarios de Soporte o Gerencia pueden eliminar clientes.')
+      return
+    }
+
     const confirmar = window.confirm(`¿Está seguro de que desea eliminar al cliente "${nombre || id}"?`)
     if (!confirmar) return
 
     try {
-      await eliminarCliente(id)
+      await eliminarCliente(id, usuario.sector)
       await cargarClientes()
     } catch (err) {
       alert(err.message || 'Error al eliminar el cliente')
@@ -147,13 +163,15 @@ const ListaClientes = () => {
                     <Link className="btn-ficha" to={`/clientes/${cliente.id}`}>
                       Ver Ficha
                     </Link>
-                    <button
-                      className="btn-eliminar-item"
-                      onClick={() => handleEliminar(cliente.id, cliente.nombre)}
-                      title="Eliminar cliente"
-                    >
-                      Eliminar
-                    </button>
+                    {esStaff && (
+                      <button
+                        className="btn-eliminar-item"
+                        onClick={() => handleEliminar(cliente.id, cliente.nombre)}
+                        title="Eliminar cliente"
+                      >
+                        Eliminar
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

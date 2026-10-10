@@ -22,6 +22,18 @@ export const usuariosController = {
     }
   },
 
+  async login(req, res, next) {
+    try {
+      const usuario = await usuariosService.login(req.body);
+      res.json({ ok: true, data: usuario });
+    } catch (error) {
+      if (error.status === 400 || error.status === 401) {
+        return res.status(error.status).json({ ok: false, error: error.message });
+      }
+      next(error);
+    }
+  },
+
   async estadisticas(_req, res, next) {
     try {
       const estadisticas = await usuariosService.obtenerEstadisticas();

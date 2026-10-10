@@ -39,14 +39,30 @@ const DetalleCliente = () => {
     }
   }, [id])
 
+  const [usuario] = useState(() => {
+    try {
+      const sesion = localStorage.getItem('usuarioCRM')
+      return sesion ? JSON.parse(sesion) : null
+    } catch {
+      return null
+    }
+  })
+
+  const esStaff = usuario && ['Gerencia', 'Soporte'].includes(usuario.sector)
+
   const handleEliminar = async () => {
+    if (!esStaff) {
+      setError('Solo usuarios con rol Soporte o Gerencia pueden eliminar clientes.')
+      return
+    }
+
     const confirmar = window.confirm(`¿Está seguro de que desea eliminar al cliente "${cliente?.nombre || id}"?`)
     if (!confirmar) return
 
     setEliminando(true)
     setError(null)
     try {
-      await eliminarCliente(id)
+      await eliminarCliente(id, usuario.sector)
       setMensajeEliminado(true)
       setTimeout(() => {
         navigate('/clientes')
@@ -98,13 +114,19 @@ const DetalleCliente = () => {
           )}
 
           {!mensajeEliminado && (
-            <button
-              className="btn-eliminar"
-              onClick={handleEliminar}
-              disabled={eliminando}
-            >
-              {eliminando ? 'Eliminando cliente...' : 'Eliminar Cliente'}
-            </button>
+            esStaff ? (
+              <button
+                className="btn-eliminar"
+                onClick={handleEliminar}
+                disabled={eliminando}
+              >
+                {eliminando ? 'Eliminando cliente...' : 'Eliminar Cliente'}
+              </button>
+            ) : (
+              <p style={{ textAlign: 'center', color: '#888', fontStyle: 'italic', marginTop: '20px' }}>
+                * Solo los usuarios con rol de Soporte o Gerencia pueden eliminar clientes.
+              </p>
+            )
           )}
         </>
       ) : (

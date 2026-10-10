@@ -3,8 +3,7 @@ const Footer = () => {
   return (
     <footer>
       <p>
-        &copy; 2026 Panel de Control de Clientes | Trabajo Integrador
-        Programacion Visual - GRUPO 5
+        &copy; 2026 Panel de Control de Clientes | Trabajo practico 2 Legislacion y Ejercicio Profesional- GRUPO 8
       </p>
 
     </footer>

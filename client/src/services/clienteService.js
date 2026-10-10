@@ -38,14 +38,20 @@ export const buscarClientes = async (termino) => {
   return await response.json()
 }
 
-export const eliminarCliente = async (id) => {
-  const response = await fetch(`${API_URL}/${id}`, {
-    method: 'DELETE'
-  })
-  if (!response.ok) {
-    throw new Error('Error al eliminar el cliente del servidor')
+export const eliminarCliente = async (id, sector) => {
+  const headers = {}
+  if (sector) {
+    headers['x-user-sector'] = sector
   }
-  return await response.json()
+  const response = await fetch(`${API_URL}/${id}`, {
+    method: 'DELETE',
+    headers
+  })
+  const data = await response.json()
+  if (!response.ok) {
+    throw new Error(data.error || 'Error al eliminar el cliente del servidor')
+  }
+  return data
 }
 
 export const getEstadisticasDashboard = async () => {
@@ -54,4 +60,19 @@ export const getEstadisticasDashboard = async () => {
     throw new Error('Error al obtener estadísticas del servidor')
   }
   return await response.json()
+}
+
+export const loginUsuario = async (credenciales) => {
+  const response = await fetch('http://localhost:3001/api/usuarios/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(credenciales)
+  })
+  const data = await response.json()
+  if (!response.ok) {
+    throw new Error(data.error || 'Error al iniciar sesión')
+  }
+  return data
 }

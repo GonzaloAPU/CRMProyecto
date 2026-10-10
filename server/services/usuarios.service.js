@@ -13,6 +13,36 @@ export const usuariosService = {
     });
   },
 
+  async login({ email, password }) {
+    if (!email || !password) {
+      const error = new Error('Email y contraseña son obligatorios');
+      error.status = 400;
+      throw error;
+    }
+
+    const emailNormalizado = email.trim().toLowerCase();
+    const snapshot = await db.collection('users').where('email', '==', emailNormalizado).get();
+
+    if (snapshot.empty) {
+      const error = new Error('Credenciales inválidas');
+      error.status = 401;
+      throw error;
+    }
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+
+    if (data.password !== password) {
+      const error = new Error('Credenciales inválidas');
+      error.status = 401;
+      throw error;
+    }
+
+    const usuarioSinPassword = { ...data };
+    delete usuarioSinPassword.password;
+    return { id: doc.id, ...usuarioSinPassword };
+  },
+
   async crear(datosUsuario) {
     const { email, password, sector, nombre } = datosUsuario;
 
