@@ -7,6 +7,8 @@ import { handleError } from './middleware/errorHandler.js'
 import testRoutes from './routes/test.routes.js'
 import clientesRoutes from './routes/clientes.routes.js'
 import usuariosRoutes from './routes/usuarios.routes.js'
+import { setupSwagger } from './config/swagger.js'
+
 
 dotenv.config({ path: fileURLToPath(new URL('./.env', import.meta.url)) })
 
@@ -14,6 +16,10 @@ export const createApp = () => {
   const app = express()
   app.use(cors())
   app.use(express.json())
+
+  // Swagger UI - disponible en http://localhost:3000/api/docs
+  setupSwagger(app)
+
   app.get('/', (_request, response) => {
     response.json({ message: 'API CRM funcionando correctamente' })
   })
